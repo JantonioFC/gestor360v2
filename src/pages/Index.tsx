@@ -1,12 +1,46 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import { Sidebar } from '@/components/gestor/Sidebar';
+import { MainPanel } from '@/components/gestor/MainPanel';
+import { FileManager } from '@/lib/fileManager';
 
 const Index = () => {
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [fileContent, setFileContent] = useState<string>('');
+
+  const handleFolderSelect = (folderId: string) => {
+    setSelectedFolder(folderId);
+    setSelectedFile(null);
+    setFileContent('');
+  };
+
+  const handleFileSelect = (fileName: string) => {
+    setSelectedFile(fileName);
+    const content = FileManager.getFileContent(selectedFolder!, fileName);
+    setFileContent(content);
+  };
+
+  const handleSaveFile = (content: string) => {
+    if (selectedFolder && selectedFile) {
+      FileManager.saveFile(selectedFolder, selectedFile, content);
+      setFileContent(content);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="h-screen flex bg-background text-foreground overflow-hidden">
+      <Sidebar 
+        selectedFolder={selectedFolder}
+        onFolderSelect={handleFolderSelect}
+      />
+      <MainPanel
+        selectedFolder={selectedFolder}
+        selectedFile={selectedFile}
+        fileContent={fileContent}
+        onFileSelect={handleFileSelect}
+        onSaveFile={handleSaveFile}
+      />
     </div>
   );
 };
