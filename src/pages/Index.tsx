@@ -16,6 +16,12 @@ const Index = () => {
   };
 
   const handleFileSelect = (fileName: string) => {
+    if (!fileName) {
+      setSelectedFile(null);
+      setFileContent('');
+      return;
+    }
+    
     setSelectedFile(fileName);
     const content = FileManager.getFileContent(selectedFolder!, fileName);
     setFileContent(content);

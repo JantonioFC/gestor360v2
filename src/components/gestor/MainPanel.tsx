@@ -4,6 +4,7 @@ import { FileList } from './FileList';
 import { MarkdownEditor } from './MarkdownEditor';
 import { NewEntryModal } from './NewEntryModal';
 import { Plus } from 'lucide-react';
+import { FileManager } from '@/lib/fileManager';
 
 interface MainPanelProps {
   selectedFolder: string | null;
@@ -21,6 +22,23 @@ export const MainPanel = ({
   onSaveFile
 }: MainPanelProps) => {
   const [showNewEntryModal, setShowNewEntryModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleNewDocumentSave = (fileName: string, content: string) => {
+    if (selectedFolder) {
+      // Create the new file
+      FileManager.createFile(selectedFolder, fileName, content);
+      
+      // Close modal
+      setShowNewEntryModal(false);
+      
+      // Force refresh of file list
+      setRefreshKey(prev => prev + 1);
+      
+      // Automatically select the new file
+      onFileSelect(fileName);
+    }
+  };
 
   if (!selectedFolder) {
     return (
@@ -56,6 +74,7 @@ export const MainPanel = ({
       <div className="flex-1 flex">
         {!selectedFile ? (
           <FileList
+            key={refreshKey}
             folderId={selectedFolder}
             onFileSelect={onFileSelect}
           />
@@ -73,10 +92,7 @@ export const MainPanel = ({
         <NewEntryModal
           folderId={selectedFolder}
           onClose={() => setShowNewEntryModal(false)}
-          onSave={(fileName, content) => {
-            // Handle new file creation
-            setShowNewEntryModal(false);
-          }}
+          onSave={handleNewDocumentSave}
         />
       )}
     </div>
