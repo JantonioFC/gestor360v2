@@ -34,7 +34,7 @@ export const Sidebar = ({ selectedFolder, onFolderSelect }: SidebarProps) => {
   return (
     <div className="w-80 bg-slate-900 border-r border-slate-700 flex flex-col">
       <div className="p-4 border-b border-slate-700">
-        <h1 className="text-xl font-bold text-white">Gestor 360</h1>
+        <h1 className="text-xl font-bold text-white">Gestor 360V2</h1>
         <p className="text-sm text-slate-400 mt-1">Artefactos de Desarrollo</p>
       </div>
 
