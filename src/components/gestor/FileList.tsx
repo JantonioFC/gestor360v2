@@ -1,5 +1,5 @@
 
-import { FileText, Calendar, Eye } from 'lucide-react';
+import { FileText, Calendar, Eye, Clock } from 'lucide-react';
 import { FileManager } from '@/lib/fileManager';
 
 interface FileListProps {
@@ -24,11 +24,36 @@ export const FileList = ({ folderId, onFileSelect }: FileListProps) => {
     );
   }
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const getRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Hace menos de 1 hora';
+    if (diffInHours < 24) return `Hace ${diffInHours} horas`;
+    if (diffInHours < 48) return 'Ayer';
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `Hace ${diffInDays} días`;
+    
+    return formatDate(dateString);
+  };
+
   return (
     <div className="flex-1 p-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {files.map((fileName) => {
           const metadata = FileManager.getFileMetadata(folderId, fileName);
+          const isRecentlyUpdated = metadata.updatedAt !== metadata.createdAt;
           
           return (
             <div
@@ -47,9 +72,21 @@ export const FileList = ({ folderId, onFileSelect }: FileListProps) => {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <Calendar className="w-3 h-3" />
-                  <span>{metadata.createdAt}</span>
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" />
+                    <span>Creado: {formatDate(metadata.createdAt)}</span>
+                  </div>
+                  {isRecentlyUpdated && (
+                    <div className="flex items-center gap-1 text-green-400">
+                      <Clock className="w-3 h-3" />
+                      <span>Actualizado</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="text-xs text-slate-500">
+                  <span>{getRelativeTime(metadata.updatedAt)}</span>
                 </div>
                 
                 {metadata.preview && (

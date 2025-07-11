@@ -3,10 +3,30 @@
 export class FileManager {
   private static STORAGE_KEY = 'gestor360_files';
 
+  // Get current date in various formats
+  private static getCurrentDate() {
+    const now = new Date();
+    return {
+      iso: now.toISOString().split('T')[0], // 2024-01-15
+      timestamp: now.toISOString(), // 2024-01-15T10:30:00.000Z
+      readable: now.toLocaleDateString('es-ES', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }), // lunes, 15 de enero de 2024
+      time: now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }) // 10:30
+    };
+  }
+
   // Initialize with sample data if localStorage is empty
   static init() {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     if (!stored) {
+      const currentDate = this.getCurrentDate();
       const sampleData = {
         dde: {
           'DDE_2024-01-01_Arquitectura_Base.md': {
@@ -31,9 +51,12 @@ Optamos por una arquitectura modular que nos permita evolucionar gradualmente.
 - Negativas: Complejidad inicial
 - Riesgos: Curva de aprendizaje
 
-## Fecha: 2024-01-01
-## Estado: Aceptada`,
+## Fecha de Decisión: 2024-01-01
+## Fecha de Creación: ${currentDate.readable} a las ${currentDate.time}
+## Estado: Aceptada
+## Última Actualización: ${currentDate.iso}`,
             createdAt: '2024-01-01',
+            updatedAt: currentDate.iso,
             preview: 'Definición de la arquitectura base del sistema...'
           }
         },
@@ -44,6 +67,11 @@ Optamos por una arquitectura modular que nos permita evolucionar gradualmente.
 ## Objetivo
 Establecer la base técnica del proyecto.
 
+## Fechas del Sprint
+- **Inicio:** 2024-01-02
+- **Fin:** 2024-01-16
+- **Duración:** 2 semanas
+
 ## Por hacer
 - [ ] Configurar repositorio
 - [ ] Definir estructura de carpetas
@@ -53,11 +81,13 @@ Establecer la base técnica del proyecto.
 - [ ] Configurar pipeline CI/CD
 
 ## Hecho
-- [x] Crear proyecto base
-- [x] Definir tecnologías
+- [x] Crear proyecto base - Completado el ${currentDate.iso}
+- [x] Definir tecnologías - Completado el ${currentDate.iso}
 
-## Fecha: 2024-01-02`,
+## Fecha de Creación: ${currentDate.readable} a las ${currentDate.time}
+## Última Revisión: ${currentDate.iso}`,
             createdAt: '2024-01-02',
+            updatedAt: currentDate.iso,
             preview: 'Plan para el primer sprint del proyecto...'
           }
         },
@@ -94,23 +124,37 @@ Establecer la base técnica del proyecto.
   static getFileMetadata(folderId: string, fileName: string) {
     const data = this.getData();
     const file = data[folderId]?.[fileName];
+    const currentDate = this.getCurrentDate();
+    
     return {
-      createdAt: file?.createdAt || new Date().toISOString().split('T')[0],
+      createdAt: file?.createdAt || currentDate.iso,
+      updatedAt: file?.updatedAt || currentDate.iso,
       preview: file?.preview || ''
     };
   }
 
   static saveFile(folderId: string, fileName: string, content: string) {
     const data = this.getData();
+    const currentDate = this.getCurrentDate();
     
     if (!data[folderId]) {
       data[folderId] = {};
     }
     
+    // Auto-update last modification date in content if it exists
+    let updatedContent = content;
+    if (content.includes('## Última Actualización:') || content.includes('## Última Revisión:')) {
+      updatedContent = content.replace(
+        /(## Última (?:Actualización|Revisión):) [\d-]+/g,
+        `$1 ${currentDate.iso}`
+      );
+    }
+    
     data[folderId][fileName] = {
-      content,
-      createdAt: data[folderId][fileName]?.createdAt || new Date().toISOString().split('T')[0],
-      preview: content.substring(0, 150).replace(/[#*`]/g, '').trim()
+      content: updatedContent,
+      createdAt: data[folderId][fileName]?.createdAt || currentDate.iso,
+      updatedAt: currentDate.iso,
+      preview: updatedContent.substring(0, 150).replace(/[#*`]/g, '').trim()
     };
     
     this.saveData(data);
@@ -118,6 +162,7 @@ Establecer la base técnica del proyecto.
 
   static createFile(folderId: string, fileName: string, content: string) {
     const data = this.getData();
+    const currentDate = this.getCurrentDate();
     
     if (!data[folderId]) {
       data[folderId] = {};
@@ -125,10 +170,16 @@ Establecer la base técnica del proyecto.
     
     data[folderId][fileName] = {
       content,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: currentDate.iso,
+      updatedAt: currentDate.iso,
       preview: content.substring(0, 150).replace(/[#*`]/g, '').trim()
     };
     
     this.saveData(data);
+  }
+
+  // New method to get formatted dates for templates
+  static getFormattedDates() {
+    return this.getCurrentDate();
   }
 }
